@@ -1,0 +1,37 @@
+<div class="map-wrapper">
+    <mgl-map [mapStyle]="'https://tiles.openfreemap.org/styles/liberty'" [zoom]="[14]" [center]="center"
+        (mapLoad)="onMapLoad($event)">
+
+        <mgl-control mglNavigation></mgl-control>
+
+
+        <mgl-geojson-source id="vienna-social-data" [data]="venueData" [cluster]="true" [clusterMaxZoom]="14"
+            [clusterRadius]="50">
+            <mgl-feature *ngFor="let feature of venueData.features" [geometry]="feature.geometry"
+                [properties]="feature.properties"></mgl-feature>
+        </mgl-geojson-source>
+
+
+
+        <mgl-geojson-source id="route-data" [data]="routeData">
+        </mgl-geojson-source>
+
+
+        <mgl-layer id="route-lines" type="line" source="route-data" [layout]="{
+            'line-join': 'round',
+            'line-cap': 'round'
+        }" [paint]="{
+            'line-color': '#888',
+            'line-width': 8
+        }">
+        </mgl-layer>
+
+        <mgl-layer id="venues-layer" type="circle" source="vienna-social-data" [paint]="{
+        'circle-radius': 8,
+        'circle-color': '#ff4500',
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ffffff'
+      }">
+        </mgl-layer>
+    </mgl-map>
+</div>

@@ -1,0 +1,11 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import "tailwindcss";
+
+/* Ensure Tailwind utilities take precedence */
+@layer base {
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+}

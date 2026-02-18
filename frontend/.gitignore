@@ -1,0 +1,11 @@
+# Build output
+dist/
+
+# Angular cache
+.angular/cache/
+
+# Dependencies
+node_modules/
+
+# Environment overrides
+src/environments/*.local.ts

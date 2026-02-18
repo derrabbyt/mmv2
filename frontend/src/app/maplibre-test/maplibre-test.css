@@ -1,0 +1,23 @@
+.map-wrapper {
+    position: relative;
+    height: 100vh;
+    /* Absolute must: Map won't show without explicit height */
+    width: 100%;
+}
+
+mgl-map {
+    height: 100%;
+    width: 100%;
+}
+
+.status-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    font-family: sans-serif;
+    z-index: 10;
+}
