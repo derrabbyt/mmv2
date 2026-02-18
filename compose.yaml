@@ -86,3 +86,29 @@ services:
       POSTGRES_PASSWORD: main12345
       POSTGRES_USER: main
       POSTGRES_DB: main
+
+  valhalla:
+    image: ghcr.io/valhalla/valhalla-scripted:latest
+    volumes:
+      - ./infra/data/valhalla:/custom_files
+      - ./infra/data/gtfs:/gtfs_feeds
+      - ./infra/valhalla/valhalla.json:/custom_files/valhalla.json
+    environment:
+      serve_tiles: "True"
+      build_elevation: "False"
+      build_admins: "True"
+      build_time_zones: "True"
+      build_transit: "True"
+      build_tar: "True"
+      use_tiles_ignore_pbf: "True"
+      force_rebuild: "False"
+      server_threads: "2"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.valhalla.rule=PathPrefix(`/valhalla`)"
+      - "traefik.http.routers.valhalla.entrypoints=web"
+      - "traefik.http.routers.valhalla.priority=3"
+      - "traefik.http.middlewares.strip-valhalla.stripprefix.prefixes=/valhalla"
+      - "traefik.http.routers.valhalla.middlewares=strip-valhalla"
+      - "traefik.http.services.valhalla.loadbalancer.server.port=8002"
+    restart: unless-stopped

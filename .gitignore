@@ -11,3 +11,10 @@ infra/data/gtfs/wl.zip
 infra/data/gtfs/oebb.zip
 infra/data/osm/austria.osm.pbf
 infra/data/osm/vienna.osm.pbf
+
+# Valhalla build artifacts
+infra/data/valhalla/
+
+# Expanded GTFS (unzipped by prepare-valhalla.sh)
+infra/data/gtfs/wiener_linien/
+infra/data/gtfs/oebb/
