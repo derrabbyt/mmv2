@@ -1,0 +1,88 @@
+services:
+  traefik:
+    image: traefik:v3.6
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./infra/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.priority=1"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
+  www:
+    build:
+      context: ./backend
+      dockerfile: dockerfile.www
+    volumes:
+      - "./backend/backend:/app/backend"
+      - "./backend/db:/app/db"
+      - "./backend/docker/www/prestart.sh:/app/prestart.sh"
+    environment:
+      IS_DEV: true
+      RELOAD: true
+      DATABASE_URL: postgresql://main:main12345@db/main
+      CELERY_BROKER: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.www.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.www.entrypoints=web"
+      - "traefik.http.routers.www.priority=2"
+      - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
+      - "traefik.http.routers.www.middlewares=strip-api"
+      - "traefik.http.services.www.loadbalancer.server.port=80"
+
+  celery-scheduler:
+    build:
+      context: ./backend
+      dockerfile: dockerfile.celery
+    volumes:
+      - "./backend/backend:/app/backend"
+      - "./backend/db:/app/db"
+      - "./backend/docker/celery/prestart.sh:/app/prestart.sh"
+    environment:
+      IS_DEV: true
+      DATABASE_URL: postgresql://main:main12345@db/main
+      CELERY_BROKER: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  celery-node:
+    build:
+      context: ./backend
+      dockerfile: dockerfile.celery
+    volumes:
+      - "./backend/backend:/app/backend"
+      - "./backend/db:/app/db"
+      - "./backend/docker/celery/prestart.sh:/app/prestart.sh"
+    environment:
+      IS_DEV: true
+      DATABASE_URL: postgresql://main:main12345@db/main
+      CELERY_BROKER: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  redis:
+    image: redis
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: main12345
+      POSTGRES_USER: main
+      POSTGRES_DB: main

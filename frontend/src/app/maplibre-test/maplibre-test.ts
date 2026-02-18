@@ -17,13 +17,13 @@ export class MaplibreTest {
   venueData: FeatureCollection = { type: 'FeatureCollection', features: [] };
 
   // Always keep this as valid GeoJSON to avoid null issues
-  routeData: FeatureCollection = { type: 'FeatureCollection', features: [] };
+  // routeData: FeatureCollection = { type: 'FeatureCollection', features: [] };
 
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
     this.fetchSocialVenues();
-    this.loadRandomRoute();
+    // this.loadRandomRoute();
   }
 
   fetchSocialVenues() {
@@ -31,6 +31,7 @@ export class MaplibreTest {
     const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
 
     this.http.get<any>(url).subscribe(res => {
+      console.log(res)
       this.venueData = {
         type: 'FeatureCollection',
         features: res.elements.map((el: any) => ({
@@ -39,15 +40,17 @@ export class MaplibreTest {
           properties: { name: el.tags?.name ?? '(unnamed)' }
         }))
       };
+      console.log(this.venueData)
     });
   }
 
   onMapLoad(event: any) {
     console.log('Map loaded:', event);
+    this.http.get('/api/hello').subscribe(res => console.log(res))
   }
 
-  loadRandomRoute() {
-    this.http.get<FeatureCollection>('http://localhost:8000/api/v1/map/random_route')
-      .subscribe(fc => this.routeData = fc);
-  }
+  // loadRandomRoute() {
+  //   this.http.get<FeatureCollection>('http://localhost:8000/api/v1/map/random_route')
+  //     .subscribe(fc => this.routeData = fc);
+  // }
 }
