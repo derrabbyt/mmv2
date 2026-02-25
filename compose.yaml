@@ -27,10 +27,12 @@ services:
       - "./backend/backend:/app/backend"
       - "./backend/db:/app/db"
       - "./backend/docker/www/prestart.sh:/app/prestart.sh"
+      - ./infra:/app/infra
     environment:
       IS_DEV: true
       RELOAD: true
-      DATABASE_URL: postgresql://main:main12345@db/main
+      DATABASE_URL: postgresql+asyncpg://main:main12345@db:5432/main_new
+      ALEMBIC_DATABASE_URL: postgresql+psycopg://main:main12345@db:5432/main_new
       CELERY_BROKER: redis://redis:6379/0
     depends_on:
       - db
@@ -54,7 +56,8 @@ services:
       - "./backend/docker/celery/prestart.sh:/app/prestart.sh"
     environment:
       IS_DEV: true
-      DATABASE_URL: postgresql://main:main12345@db/main
+      DATABASE_URL: postgresql+asyncpg://main:main12345@db:5432/main_new
+      ALEMBIC_DATABASE_URL: postgresql+psycopg://main:main12345@db:5432/main_new
       CELERY_BROKER: redis://redis:6379/0
     depends_on:
       - db
@@ -70,7 +73,8 @@ services:
       - "./backend/docker/celery/prestart.sh:/app/prestart.sh"
     environment:
       IS_DEV: true
-      DATABASE_URL: postgresql://main:main12345@db/main
+      DATABASE_URL: postgresql+asyncpg://main:main12345@db:5432/main_new
+      ALEMBIC_DATABASE_URL: postgresql+psycopg://main:main12345@db:5432/main_new
       CELERY_BROKER: redis://redis:6379/0
     depends_on:
       - db
@@ -80,12 +84,18 @@ services:
     image: redis
 
   db:
-    image: postgres
+    image: postgis/postgis:18-3.6
     restart: always
     environment:
       POSTGRES_PASSWORD: main12345
       POSTGRES_USER: main
-      POSTGRES_DB: main
+      POSTGRES_DB: main_new
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./infra/scripts:/app/scripts
+      - postgres_data:/var/lib/postgresql
 
   valhalla:
     image: ghcr.io/valhalla/valhalla-scripted:latest
@@ -112,3 +122,6 @@ services:
       - "traefik.http.routers.valhalla.middlewares=strip-valhalla"
       - "traefik.http.services.valhalla.loadbalancer.server.port=8002"
     restart: unless-stopped
+
+volumes:
+  postgres_data:

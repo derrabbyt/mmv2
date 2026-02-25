@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { NgxMapLibreGLModule, MapComponent, GeoJSONSourceComponent, LayerComponent } from '@maplibre/ngx-maplibre-gl';
-import { FeatureCollection } from 'geojson';
+import { FeatureCollection, Feature, Point } from 'geojson';
+import { MapMouseEvent } from 'maplibre-gl';
 
 @Component({
   selector: 'app-maplibre-test',
@@ -14,43 +15,92 @@ import { FeatureCollection } from 'geojson';
 export class MaplibreTest {
   center: [number, number] = [16.3725, 48.2087];
 
-  venueData: FeatureCollection = { type: 'FeatureCollection', features: [] };
+  poiData: FeatureCollection = { type: 'FeatureCollection', features: [] };
+  currentRoute: FeatureCollection = { type: 'FeatureCollection', features: [] };
+  clickedPoints: FeatureCollection = { type: 'FeatureCollection', features: [] };
 
-  // Always keep this as valid GeoJSON to avoid null issues
-  // routeData: FeatureCollection = { type: 'FeatureCollection', features: [] };
+  // Track the two selected points for routing
+  private selectedPoints: [number, number][] = [];
+
+  routeStatus: string = '';
 
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
-    this.fetchSocialVenues();
-    // this.loadRandomRoute();
+    this.loadPois();
   }
 
-  fetchSocialVenues() {
-    const query = `[out:json];(node["amenity"~"cafe|restaurant|bar"](around:500,48.2087,16.3725););out center;`;
-    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-
-    this.http.get<any>(url).subscribe(res => {
-      console.log(res)
-      this.venueData = {
-        type: 'FeatureCollection',
-        features: res.elements.map((el: any) => ({
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: [el.lon, el.lat] },
-          properties: { name: el.tags?.name ?? '(unnamed)' }
-        }))
-      };
-      console.log(this.venueData)
+  loadPois(): void {
+    this.routeStatus = 'Loading POIs...';
+    this.http.get<FeatureCollection>('/api/test/pois?count=20').subscribe({
+      next: (fc) => {
+        this.poiData = fc;
+        this.routeStatus = `Loaded ${fc.features.length} POIs. Click two points on the map to route.`;
+      },
+      error: (err) => {
+        console.error('Failed to load POIs:', err);
+        this.routeStatus = 'Failed to load POIs.';
+      }
     });
   }
 
-  onMapLoad(event: any) {
-    console.log('Map loaded:', event);
-    this.http.get('/api/hello').subscribe(res => console.log(res))
+  onMapClick(event: MapMouseEvent): void {
+    const lngLat = event.lngLat;
+    if (!lngLat) return;
+
+    const point: [number, number] = [lngLat.lng, lngLat.lat];
+    this.selectedPoints.push(point);
+
+    // Update the clicked points markers
+    this.clickedPoints = {
+      type: 'FeatureCollection',
+      features: this.selectedPoints.map((p, i) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: p },
+        properties: { label: i === 0 ? 'A' : 'B', index: i }
+      }))
+    };
+
+    if (this.selectedPoints.length === 1) {
+      this.routeStatus = 'Start point selected. Click a second point for the destination.';
+    }
+
+    if (this.selectedPoints.length >= 2) {
+      this.calculateRoute(this.selectedPoints[0], this.selectedPoints[1]);
+      this.selectedPoints = [];
+    }
   }
 
-  // loadRandomRoute() {
-  //   this.http.get<FeatureCollection>('http://localhost:8000/api/v1/map/random_route')
-  //     .subscribe(fc => this.routeData = fc);
-  // }
+  private calculateRoute(start: [number, number], end: [number, number]): void {
+    this.routeStatus = 'Calculating route...';
+
+    const body = {
+      start: { lon: start[0], lat: start[1] },
+      end: { lon: end[0], lat: end[1] },
+      costing: 'auto'
+    };
+
+    this.http.post<FeatureCollection>('/api/test/route', body).subscribe({
+      next: (fc) => {
+        this.currentRoute = fc;
+        const props = fc.features[0]?.properties;
+        if (props) {
+          const distKm = (props['distance_m'] / 1000).toFixed(1);
+          const durMin = (props['duration_s'] / 60).toFixed(0);
+          this.routeStatus = `Route: ${distKm} km, ~${durMin} min. Click two new points to reroute.`;
+        } else {
+          this.routeStatus = 'Route displayed. Click two new points to reroute.';
+        }
+      },
+      error: (err) => {
+        console.error('Failed to calculate route:', err);
+        this.routeStatus = 'Route calculation failed. Click two points to try again.';
+        this.currentRoute = { type: 'FeatureCollection', features: [] };
+      }
+    });
+  }
+
+  onMapLoad(event: any): void {
+    console.log('Map loaded:', event);
+  }
 }

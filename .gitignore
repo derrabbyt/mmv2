@@ -18,3 +18,18 @@ infra/data/valhalla/
 # Expanded GTFS (unzipped by prepare-valhalla.sh)
 infra/data/gtfs/wiener_linien/
 infra/data/gtfs/oebb/
+infra/data/gmaps/poi_mapping_output.csv
+infra/data/gmaps/poi_mapping_output2.csv
+infra/data/gmaps/poi_osm.csv
+infra/data/gmaps/vienna.osm.pbf
+infra/data/gmaps/poi_google.jsonl
+infra/data/gmaps/poi_google.csv
+infra/data/gmaps/austria.osm.pbf
+infra/data/gmaps/all_results.jsonl
+infra/data/gmaps/austria_all_pois.csv
+infra/data/photon/
+
+*__pycache__*
+*.jsonl
+*.csv
+*.pbf

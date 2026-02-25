@@ -2,9 +2,12 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+from sqlalchemy import text, create_engine
+
 
 # This has to be a wildcard in order to pull in all models for alembic.
 from backend.models import *  # noqa: F403
+import geoalchemy2
 from backend.conf.db import DatabaseSettings
 
 settings = DatabaseSettings()
@@ -30,6 +33,13 @@ target_metadata = base.Base.metadata  # noqa: F405
 # ... etc.
 
 
+def include_object(object, name, type_, reflected, compare_to):
+    """Exclude PostGIS system tables from migrations"""
+    if type_ == "table" and name in ["spatial_ref_sys", "geography_columns", "geometry_columns", "tiger", "topology"]:
+        return False
+    return True
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -43,7 +53,7 @@ def run_migrations_offline() -> None:
 
     """
     context.configure(
-        url=settings.database_url,
+        url=settings.alembic_database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -61,13 +71,17 @@ def run_migrations_online() -> None:
 
     """
     connectable = engine_from_config(
-        {"db.url": settings.database_url, "db.echo": "True"},
+        {"db.url": settings.alembic_database_url, "db.echo": "True"},
         prefix="db.",
         poolclass=pool.NullPool,
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
+        connection.commit()
+        context.configure(
+            connection=connection, target_metadata=target_metadata, include_object=include_object, compare_type=True
+        )
 
         with context.begin_transaction():
             context.run_migrations()

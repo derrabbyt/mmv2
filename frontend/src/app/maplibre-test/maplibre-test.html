@@ -1,37 +1,65 @@
 <div class="map-wrapper">
     <mgl-map [mapStyle]="'https://tiles.openfreemap.org/styles/liberty'" [zoom]="[14]" [center]="center"
-        (mapLoad)="onMapLoad($event)">
+        (mapLoad)="onMapLoad($event)" (mapClick)="onMapClick($event)">
 
         <mgl-control mglNavigation></mgl-control>
 
-
-        <mgl-geojson-source id="vienna-social-data" [data]="venueData" [cluster]="true" [clusterMaxZoom]="14"
-            [clusterRadius]="50">
-            <mgl-feature *ngFor="let feature of venueData.features" [geometry]="feature.geometry"
-                [properties]="feature.properties"></mgl-feature>
+        <!-- POIs from backend -->
+        <mgl-geojson-source id="poi-data" [data]="poiData" [cluster]="true" [clusterMaxZoom]="14" [clusterRadius]="50">
         </mgl-geojson-source>
 
+        <mgl-layer id="poi-clusters" type="circle" source="poi-data" [filter]="['has', 'point_count']" [paint]="{
+            'circle-radius': ['step', ['get', 'point_count'], 15, 10, 20, 30, 25],
+            'circle-color': '#51bbd6',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff'
+        }">
+        </mgl-layer>
 
-        <!-- 
-        <mgl-geojson-source id="route-data" [data]="routeData">
-        </mgl-geojson-source> -->
+        <mgl-layer id="poi-cluster-count" type="symbol" source="poi-data" [filter]="['has', 'point_count']" [layout]="{
+            'text-field': '{point_count_abbreviated}',
+            'text-size': 12
+        }">
+        </mgl-layer>
 
+        <mgl-layer id="poi-unclustered" type="circle" source="poi-data" [filter]="['!', ['has', 'point_count']]"
+            [paint]="{
+            'circle-radius': 7,
+            'circle-color': '#ff4500',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff'
+        }">
+        </mgl-layer>
+
+        <!-- Clicked points (route start/end markers) -->
+        <mgl-geojson-source id="clicked-points" [data]="clickedPoints">
+        </mgl-geojson-source>
+
+        <mgl-layer id="clicked-points-layer" type="circle" source="clicked-points" [paint]="{
+            'circle-radius': 10,
+            'circle-color': '#2196F3',
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#ffffff'
+        }">
+        </mgl-layer>
+
+        <!-- Route line -->
+        <mgl-geojson-source id="route-data" [data]="currentRoute">
+        </mgl-geojson-source>
 
         <mgl-layer id="route-lines" type="line" source="route-data" [layout]="{
             'line-join': 'round',
             'line-cap': 'round'
         }" [paint]="{
-            'line-color': '#888',
-            'line-width': 8
+            'line-color': '#2196F3',
+            'line-width': 5,
+            'line-opacity': 0.8
         }">
         </mgl-layer>
-
-        <mgl-layer id="venues-layer" type="circle" source="vienna-social-data" [paint]="{
-        'circle-radius': 8,
-        'circle-color': '#ff4500',
-        'circle-stroke-width': 2,
-        'circle-stroke-color': '#ffffff'
-      }">
-        </mgl-layer>
     </mgl-map>
+
+    <!-- Status overlay -->
+    <div class="status-overlay" *ngIf="routeStatus">
+        {{ routeStatus }}
+    </div>
 </div>

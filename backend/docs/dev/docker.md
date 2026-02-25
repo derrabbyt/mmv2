@@ -171,7 +171,7 @@ Environment variables are configured in `compose.yaml` for development:
 
 ### Database Configuration
 
-- **DATABASE_URL**: `postgresql://main:main12345@db/main`
+- **DATABASE_URL**: `postgresql://main:main12345@db/main_new`
   - Format: `postgresql://[user]:[password]@[host]/[database]`
   - Host `db` refers to the PostgreSQL service in compose
 

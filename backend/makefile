@@ -152,15 +152,13 @@ reset_db: clear_db run_migrations
 
 .PHONY: clear_db
 clear_db:
-	rm -Rf test.db*
+	$(UV) run python -c "from sqlalchemy import create_engine, text; from backend.conf.settings import Settings; engine=create_engine(Settings().database_url.replace('+asyncpg', '')); conn=engine.connect(); conn.execute(text('DROP SCHEMA public CASCADE; CREATE SCHEMA public;')); conn.commit(); conn.close()"
 
 .PHONY: create_migration
 create_migration:
 	@if [ -z "$(MESSAGE)" ]; then echo "Please add a message parameter for the migration (make create_migration MESSAGE=\"database migration notes\")."; exit 1; fi
-	rm $(MIGRATION_DATABASE) | true
-	DATABASE_URL=sqlite:///$(MIGRATION_DATABASE) $(UV) run alembic upgrade head
-	DATABASE_URL=sqlite:///$(MIGRATION_DATABASE) $(UV) run alembic revision --autogenerate -m "$(MESSAGE)"
-	rm $(MIGRATION_DATABASE)
+	$(UV) run alembic upgrade head
+	$(UV) run alembic revision --autogenerate -m "$(MESSAGE)"
 	$(UV) run ruff format ./db
 
 .PHONY: check_ungenerated_migrations

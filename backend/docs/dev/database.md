@@ -764,6 +764,63 @@ make document_schema
 <!-- BEGIN_SQLALCHEMY_DOCS -->
 ```mermaid
 erDiagram
+  google_pois {
+    INTEGER id PK "indexed"
+    TEXT address "nullable"
+    geometry(POINT-4326) geom "nullable"
+    VARCHAR(100) main_category "nullable"
+    VARCHAR(255) name "nullable"
+    VARCHAR(255) place_id UK "indexed"
+    TEXT raw_categories "nullable"
+    JSONB raw_data "nullable"
+  }
+
+  meetup_isochrones {
+    INTEGER id PK
+    UUID participant_id FK "indexed"
+    geometry(MULTIPOLYGON-4326) geom
+  }
+
+  meetup_participants {
+    UUID id PK
+    UUID meetup_id FK "indexed"
+    geometry(POINT-4326) geom
+    INTEGER max_minutes
+    VARCHAR(100) name
+    VARCHAR(20) travel_mode
+  }
+
+  meetups {
+    UUID id PK
+    DATETIME created_at "nullable"
+    DATETIME expires_at "nullable"
+    VARCHAR(20) status "nullable"
+    VARCHAR(255) title "nullable"
+  }
+
+  osm_pois {
+    INTEGER id PK "indexed"
+    TEXT address "nullable"
+    VARCHAR(255) cuisine "nullable"
+    geometry(POINT-4326) geom "nullable"
+    VARCHAR(100) main_category "nullable"
+    VARCHAR(255) name "nullable"
+    BIGINT osm_id UK "indexed"
+    JSONB raw_tags "nullable"
+  }
+
+  poi_mapping {
+    INTEGER id PK "indexed"
+    INTEGER google_poi_id FK "indexed"
+    INTEGER osm_poi_id FK "indexed"
+    FLOAT distance_meters "nullable"
+    FLOAT similarity_score "nullable"
+  }
+
+  meetup_participants ||--o{ meetup_isochrones : participant_id
+  meetups ||--o{ meetup_participants : meetup_id
+  google_pois ||--o{ poi_mapping : google_poi_id
+  osm_pois ||--o{ poi_mapping : osm_poi_id
 
 ```
 <!-- END_SQLALCHEMY_DOCS -->

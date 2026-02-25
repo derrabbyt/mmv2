@@ -6,13 +6,17 @@ from fastapi.testclient import TestClient
 from backend.www import app
 
 
+from sqlalchemy import text
+from backend.conf.settings import Settings
+
 @pytest_asyncio.fixture
-async def db_session_maker(tmpdir):
+async def db_session_maker():
     """Creates a test database engine, complete with fake data."""
-    test_database_url = f"sqlite+aiosqlite:///{tmpdir}/test_database.db"  # Use SQLite for testing; adjust as needed
+    test_database_url = Settings().database_url
     engine = create_async_engine(test_database_url, future=True, echo=False)
 
     async with engine.begin() as conn:
+        await conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
         await conn.run_sync(Base.metadata.create_all)
 
     async_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

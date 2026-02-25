@@ -25,16 +25,20 @@ readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
 dependencies = [
   "SQLAlchemy",
-  "aiosqlite",
   "alembic",
   "asyncpg",
   "celery",
   "fastapi",
-  "psycopg2-binary",
+  "geoalchemy2",
   "pydantic~=2.0",
   "pydantic-settings",
+  "routingpy>=1.3.0",
   "redis",
   "uvicorn[standard]",
+  "osmium>=4.3.0",
+  "shapely>=2.1.2",
+  "numpy>=2.2.6",
+  "psycopg[binary]>=3.3.2",
 ]
 
 [dependency-groups]

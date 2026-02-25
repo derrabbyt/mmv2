@@ -4,13 +4,14 @@ echo "FastAPI Prestart Script Running"
 
 
 if [ ! -z "$IS_DEV" ]; then
-  DB_HOST=$(python -c "from urllib.parse import urlparse; print(urlparse('${DATABASE_URL}').netloc.split('@')[-1]);")
+  DB_HOST=$(python -c "from urllib.parse import urlparse; print(urlparse('${DATABASE_URL}').hostname)")
+  DB_PORT=$(python -c "from urllib.parse import urlparse; print(urlparse('${DATABASE_URL}').port or 5432)")  
   if [ ! -z "$DB_HOST" ]; then
-    while ! nc -zv ${DB_HOST} 5432  > /dev/null 2> /dev/null; do
-      echo $DATABASE_URL
-      echo "Waiting for postgres to be available at host '${DB_HOST}'"
+    while ! nc -z ${DB_HOST} ${DB_PORT}; do
+      echo "${DATABASE_URL}"
+      echo "Waiting for postgres to be available at host '${DB_HOST}:${DB_PORT}'"
       sleep 1
-    done
+done
   fi
 fi
 
