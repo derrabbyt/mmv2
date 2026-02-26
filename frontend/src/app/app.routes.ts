@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { LandingComponent } from './landing/landing';
-import { CreateMeetupComponent } from './create-meetup/create-meetup';
-import { Meetup } from './meetup/meetup';
-import { MaplibreTest } from './maplibre-test/maplibre-test';
+import { LandingComponent } from './components/landing/landing';
+import { CreateMeetupComponent } from './components/create-meetup/create-meetup';
+import { Meetup } from './components/meetup/meetup';
+import { MaplibreTest } from './components/maplibre-test/maplibre-test';
 
 export const routes: Routes = [
     { path: '', component: LandingComponent },

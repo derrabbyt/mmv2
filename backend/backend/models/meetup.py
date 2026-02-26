@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     func,
+    JSON,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -21,6 +22,13 @@ class Meetup(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String(255), nullable=True)
+    city = Column(String(100), nullable=True)
+    pinCode = Column(String(20), nullable=True)
+    date = Column(DateTime(timezone=True), nullable=True)
+    startTime = Column(String(20), nullable=True)
+    endTime = Column(String(20), nullable=True)
+    types = Column(JSON, nullable=True)
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     expires_at = Column(DateTime(timezone=True), nullable=True)
     status = Column(String(20), default="active")

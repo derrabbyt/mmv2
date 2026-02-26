@@ -125,20 +125,7 @@
                         <div *ngIf="isDropdownOpen"
                             class="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-64 overflow-y-auto">
 
-                            <!-- Custom Type Input -->
-                            <div class="sticky top-0 bg-white border-b border-gray-100 p-3">
-                                <div class="flex items-center gap-2">
-                                    <input type="text" [(ngModel)]="customType" name="customType"
-                                        (keyup.enter)="toggleCustomType()" placeholder="Custom type..."
-                                        class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none" />
-                                    <button type="button" (click)="toggleCustomType()" [disabled]="!customType.trim()"
-                                        class="px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-black transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">
-                                        Add
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Predefined Types -->
+                            <!-- Predefined Types (Enums) -->
                             <div class="p-2">
                                 <div *ngFor="let type of meetupTypes" (click)="toggleType(type)"
                                     class="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
@@ -152,7 +139,7 @@
                     </div>
 
                     <p class="mt-2 text-xs text-gray-500">
-                        Select predefined types or add your own
+                        Select predefined types
                     </p>
                 </div>
 
@@ -170,14 +157,21 @@
                     </p>
                 </div>
 
+                <!-- Error Message -->
+                <div *ngIf="errorMessage"
+                    class="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-200">
+                    {{ errorMessage }}
+                </div>
+
                 <!-- Actions -->
                 <div class="flex flex-col sm:flex-row gap-3 pt-4">
-                    <button type="submit" [disabled]="!meetupForm.form.valid"
+                    <button type="submit" [disabled]="!meetupForm.form.valid || isSubmitting"
                         class="flex-1 px-6 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-black transition-colors shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed">
-                        Create Meetup
+                        <span *ngIf="!isSubmitting">Create Meetup</span>
+                        <span *ngIf="isSubmitting">Creating...</span>
                     </button>
-                    <button type="button"
-                        class="px-6 py-3 bg-white text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 hover:bg-gray-50 transition-colors">
+                    <button type="button" routerLink="/" [disabled]="isSubmitting"
+                        class="px-6 py-3 bg-white text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50">
                         Cancel
                     </button>
                 </div>

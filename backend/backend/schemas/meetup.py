@@ -3,36 +3,56 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, ConfigDict
 from geojson_pydantic import Point, MultiPolygon
-from enum import Enum
-
-
-class MeetupStatusEnum(str, Enum):
-    ACTIVE = "active"
-    EXPIRED = "expired"
-    CANCELLED = "cancelled"
-
+from backend.utils.enums import MeetupStatusEnum, CategoryEnum
 
 # =========================
 # Meetup Schemas
 # =========================
 
-class MeetupBase(BaseModel):
-    title: Optional[str] = None
+class Meetup(BaseModel):
+    id: UUID
+    title: str
+    city: str
+    pinCode: Optional[str] = None
+    date: Optional[datetime] = None
+    startTime: Optional[str] = None
+    endTime: Optional[str] = None
+    types: List[str]
     status: MeetupStatusEnum = MeetupStatusEnum.ACTIVE
     expires_at: Optional[datetime] = None
 
 
-class MeetupCreate(MeetupBase):
-    pass
+
+
+
+
+
+
+
+class MeetupCreate(BaseModel):
+    title: str
+    city: str
+    pinCode: Optional[str] = None
+    date: Optional[datetime] = None
+    startTime: Optional[str] = None
+    endTime: Optional[str] = None
+    types: List[str]
 
 
 class MeetupUpdate(BaseModel):
     title: Optional[str] = None
+    city: Optional[str] = None
+    pinCode: Optional[str] = None
+    date: Optional[datetime] = None
+    startTime: Optional[str] = None
+    endTime: Optional[str] = None
+    types: Optional[List[str]] = None
+    
     status: Optional[MeetupStatusEnum] = None
     expires_at: Optional[datetime] = None
 
 
-class MeetupResponse(MeetupBase):
+class MeetupResponse(MeetupCreate):
     id: UUID
     created_at: datetime
 
